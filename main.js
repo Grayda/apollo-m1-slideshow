@@ -261,7 +261,7 @@ async function resizeAndUploadAll(center = true) {
 
         })
     } catch(ex) {
-
+        console.log(ex)
     }
 }
 
