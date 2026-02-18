@@ -1,3 +1,8 @@
+.env
+
+# The downloaded camera from Home Assistant
+camera.gif
+
 # Logs
 logs
 *.log
