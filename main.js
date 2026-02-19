@@ -236,7 +236,7 @@ async function uploadFile(localFilename, remoteFilename) {
 async function resizeAndUploadAll(center = true) {
     try {
         // First, we get a list of all the GIFs in the folder
-        files = fs.globSync(`${process.env.GIFS_FOLDER}/{slideshow_,notification_}*.{png,jpeg,jpg,gif}`)
+        files = fs.globSync(`${process.env.GIFS_FOLDER}/{s_,notification_}*.{png,jpeg,jpg,gif}`)
         console.log(`Found ${files.length} files to resize..`)
         await files.forEach(async(file) => {
             let outFilename = slugify(path.parse(file).name, {
