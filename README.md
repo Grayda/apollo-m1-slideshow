@@ -28,5 +28,5 @@ There's also a few endpoints you can hit in your browser to do stuff:
 
 ## To do:
 
-* Uploading files works most of the time. Need to fix that
-* Not all GIFs play for some reason. It might be a size or palette thing. Need to work out why and fix that too
+* Uploading files works for single images, chokes when you try and upload multiple in rapid succession. Need to fix that
+* Not all GIFs play for some reason. It might be a file size or palette thing. Need to work out why and fix that too

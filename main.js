@@ -237,6 +237,7 @@ async function resizeAndUploadAll(center = true) {
     try {
         // First, we get a list of all the GIFs in the folder
         files = fs.globSync(`${process.env.GIFS_FOLDER}/{slideshow_,notification_}*.{png,jpeg,jpg,gif}`)
+        console.log(`Found ${files.length} files to resize..`)
         await files.forEach(async(file) => {
             let outFilename = slugify(path.parse(file).name, {
                 replacement: "_",
@@ -292,6 +293,7 @@ async function startWebserver() {
                 break
             case "/resize":
                 await resizeAndUploadAll()
+                message = "Resized images"
                 break
             case "/updatestats":
                 await updateSegment(2, await getHATemplate())
