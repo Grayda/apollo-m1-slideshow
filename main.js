@@ -22,6 +22,9 @@ var lastImage = ""
 // If true, will display a new image every M1_SLIDESHOW_DURATION seconds. We can turn this off to display long-running 
 var slideshow = true
 
+// Helper that delays by a few milliseconds. Used to not overwhelm the M-1 when uploading files
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
 // Set up the preset for the slideshow
 async function setupPreset() {
     preset = {
@@ -259,6 +262,10 @@ async function resizeAndUploadAll(center = true) {
             }).gif({
                 reuse: true
             }).toFile(`${process.env.RESIZED_FOLDER}/${outFilename}`)
+
+            delay(1000)
+
+            uploadFile(file, outFilename)
 
         })
     } catch(ex) {
