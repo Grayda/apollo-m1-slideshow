@@ -263,11 +263,12 @@ async function resizeAndUploadAll(center = true) {
                 reuse: true
             }).toFile(`${process.env.RESIZED_FOLDER}/${outFilename}`)
 
-            delay(1000)
-
-            uploadFile(file, outFilename)
+            await delay(1000)
+            await uploadFile(file, outFilename)
 
         })
+
+        reload()
     } catch(ex) {
         console.log(ex)
     }
