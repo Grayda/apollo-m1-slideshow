@@ -188,10 +188,12 @@ async function getM1Files(prefix = "s_") {
 }
 
 async function showImage(image) {
+
     if (image == undefined) {
         fileList = await getM1Files()
     }
-    if (image == null) {
+
+    if (image == undefined || image == null) {
         // If we want to randomize the images
         if (process.env.M1_RANDOMIZE == "true") {
             // Pick one element at random
@@ -216,11 +218,22 @@ async function showImage(image) {
 }
 
 async function uploadFile(localFilename, remoteFilename) {
-    console.log(`Uploading ${localFilename} as ${remoteFilename}..`)
     const fileBuffer = fs.readFileSync(localFilename);
     const formData = new FormData()
-
+    const delFormData = new FormData()
+    delFormData.append("path", "/" + remoteFilename)
     formData.append("data", new Blob([fileBuffer], { type: "image/gif" }), "/" + remoteFilename);
+    console.log(`Deleting ${remoteFilename}..`)
+    // Delete the file on the M-1 first so it's truly updated
+    const delResponse = await fetch(`http://${process.env.M1_HOSTNAME}/edit`, {
+        method: "DELETE",
+        signal: AbortSignal.timeout(100000),
+        body: delFormData
+    });
+
+    await delay(1000)
+
+    console.log(`Uploading ${localFilename} as ${remoteFilename}..`)
 
     const response = await fetch(`http://${process.env.M1_HOSTNAME}/edit`, {
         method: "POST",
@@ -236,40 +249,38 @@ async function uploadFile(localFilename, remoteFilename) {
 }
 
 // Takes all the images in ./gifs (or whatever folder you've set) and resizes + uploads them
-async function resizeAndUploadAll(center = true) {
+async function resizeAndUploadAll() {
     try {
         // First, we get a list of all the GIFs in the folder
         files = fs.globSync(`${process.env.GIFS_FOLDER}/{s_,notification_}*.{png,jpeg,jpg,gif}`)
         console.log(`Found ${files.length} files to resize..`)
-        await files.forEach(async(file) => {
+        // Show a blank image first, because you can't delete a file that's currently being shown.
+        showImage("")
+        await files.forEach(async (file) => {
             let outFilename = slugify(path.parse(file).name, {
                 replacement: "_",
                 lower: true,
                 remove: /[*+~.()'"!:@\-]/g
             }) + ".gif"
 
-            if(outFilename.length >= 32) {
-                console.error(`Filename too long: ${outFilename} (length ${outFilename.length}). Will not play on the M-1!`)
-                return
-            }
-
-            console.log(`Resizing ${outFilename}..`)
             await sharp(file, {
                 animated: true
             }).resize(64, 64, {
                 kernel: sharp.kernel.nearest,
-                fit: center == true ? sharp.fit.cover : sharp.fit.contain
-            }).gif({
-                reuse: true
-            }).toFile(`${process.env.RESIZED_FOLDER}/${outFilename}`)
+                fit: sharp.fit.contain
+            }).gif().toFile(`${process.env.RESIZED_FOLDER}/${outFilename}`)
 
-            await delay(1000)
-            await uploadFile(file, outFilename)
+            if (outFilename.length >= 32) {
+                console.error(`Filename too long: ${outFilename} (length ${outFilename.length}). Will not play on the M-1!`)
+                return
+            }
+
+            await uploadFile(`${process.env.RESIZED_FOLDER}/${outFilename}`, outFilename)
 
         })
 
-        reload()
-    } catch(ex) {
+        await reload()
+    } catch (ex) {
         console.log(ex)
     }
 }
@@ -348,6 +359,9 @@ async function reload() {
 
 async function setup() {
     fileList = await getM1Files()
+
+    console.dir(`Files on M-1: ${fileList}`)
+
     await setupPreset()
     await updateSegment(2, await getHATemplate())
 
