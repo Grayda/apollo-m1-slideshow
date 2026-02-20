@@ -217,21 +217,23 @@ async function showImage(image) {
     await updateSegment(0, image)
 }
 
-async function uploadFile(localFilename, remoteFilename) {
+async function uploadFile(localFilename, remoteFilename, deleteRemote = false) {
     const fileBuffer = fs.readFileSync(localFilename);
     const formData = new FormData()
     const delFormData = new FormData()
-    delFormData.append("path", "/" + remoteFilename)
     formData.append("data", new Blob([fileBuffer], { type: "image/gif" }), "/" + remoteFilename);
-    console.log(`Deleting ${remoteFilename}..`)
-    // Delete the file on the M-1 first so it's truly updated
-    const delResponse = await fetch(`http://${process.env.M1_HOSTNAME}/edit`, {
-        method: "DELETE",
-        signal: AbortSignal.timeout(100000),
-        body: delFormData
-    });
-
-    await delay(1000)
+    if(deleteRemote == true) {
+        delFormData.append("path", "/" + remoteFilename)
+        console.log(`Deleting ${remoteFilename}..`)
+        // Delete the file on the M-1 first so it's truly updated
+        const delResponse = await fetch(`http://${process.env.M1_HOSTNAME}/edit`, {
+            method: "DELETE",
+            signal: AbortSignal.timeout(100000),
+            body: delFormData
+        });
+    
+        await delay(1000)
+    }
 
     console.log(`Uploading ${localFilename} as ${remoteFilename}..`)
 
